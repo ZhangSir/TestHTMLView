@@ -9,6 +9,8 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.text.Editable;
 import android.text.Html;
+import android.text.Layout;
+import android.text.Selection;
 import android.text.Spannable;
 import android.text.Spanned;
 import android.text.TextPaint;
@@ -20,6 +22,7 @@ import android.text.style.StrikethroughSpan;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -62,6 +65,65 @@ public class HTMLView extends TextView {
 
     private void init(Context context){
         mContext = context;
+    }
+
+
+    /**
+     * 重写Touch事件，控制ClickSpan和ClickListener的事件分发，避免clickspan相应时clickListener也相应的问题
+     * @param event
+     * @return
+     */
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+
+        int action = event.getAction();
+
+        switch (action){
+            case MotionEvent.ACTION_DOWN:
+                Log.d("touch", "down");
+                return true;
+            case MotionEvent.ACTION_MOVE:
+                Log.d("touch", "move");
+                break;
+            case MotionEvent.ACTION_UP:
+                Log.d("touch", "up");
+                int x = (int) event.getX();
+                int y = (int) event.getY();
+
+                x -= this.getTotalPaddingLeft();
+                y -= this.getTotalPaddingTop();
+
+                x += this.getScrollX();
+                y += this.getScrollY();
+
+                Layout layout = this.getLayout();
+                int line = layout.getLineForVertical(y);
+                int off = layout.getOffsetForHorizontal(line, x);
+
+                if(this.getEditableText() == null){
+                    this.performClick();
+
+                    return true;
+                }
+                ClickableSpan[] link = this.getEditableText().getSpans(off, off, ClickableSpan.class);
+
+                if (link.length != 0) {
+                    link[0].onClick(this);
+                } else {
+                    Selection.removeSelection(this.getEditableText());
+                        this.performClick();
+                }
+                break;
+            case MotionEvent.ACTION_CANCEL:
+                Log.d("touch", "cancel");
+                break;
+        }
+        return true;
+    }
+
+    @Override
+    protected boolean getDefaultEditable() {
+        return true;
     }
 
     /**

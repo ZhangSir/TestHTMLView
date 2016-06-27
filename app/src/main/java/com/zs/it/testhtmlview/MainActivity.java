@@ -6,6 +6,7 @@ import android.text.Html;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity {
@@ -32,6 +33,13 @@ public class MainActivity extends AppCompatActivity {
         Log.e("HTML-->", Html.fromHtml(str1).toString());
         hvMain1.setText(str1);
         hvMain2.setText(str2);
+
+        hvMain1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.d("hvMain1", "onClick");
+            }
+        });
     }
 
     @Override
